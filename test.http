@@ -1,0 +1,93 @@
+### Register a new user
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123",
+  "role": "CUSTOMER"
+}
+
+### Login
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+
+### Register an ADMIN user (for testing)
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123",
+  "role": "ADMIN"
+}
+
+### Login as ADMIN
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+
+### Create a product (ADMIN only - copy token from login response)
+POST http://localhost:3000/api/products
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzg0OTAxMTc1LCJleHAiOjE3ODU1MDU5NzV9.pg5Fp8-LH52iOJSPGMJScjSYGcplNgG9zOiVnGDNOp4
+
+{
+  "name": "Laptop",
+  "description": "High-performance laptop",
+  "price": 75000,
+  "initialStock": 10
+}
+
+### Get all products (no auth needed)
+GET http://localhost:3000/api/products
+
+### Get single product (replace ID)
+GET http://localhost:3000/api/products/f4ac8554-b17f-49ad-8b73-30685c7746aa
+
+### Update product (ADMIN only)
+PUT http://localhost:3000/api/products/f4ac8554-b17f-49ad-8b73-30685c7746aa
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzc4OTY0Nzc0LCJleHAiOjE3Nzk1Njk1NzR9.bd3yM749fxjkcbOUSOhpkn0_ZOoKJUo88x11buPDpFQ
+
+{
+  "price": 72000
+}
+
+### Delete product (ADMIN only)
+DELETE http://localhost:3000/api/products/f4ac8554-b17f-49ad-8b73-30685c7746aa
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzc4OTY0Nzc0LCJleHAiOjE3Nzk1Njk1NzR9.bd3yM749fxjkcbOUSOhpkn0_ZOoKJUo88x11buPDpFQ
+
+### Get inventory for a product
+GET http://localhost:3000/api/inventory/product/d884f1aa-097a-4163-b0dc-167dbbd15daf
+
+### Update stock quantity (ADMIN only - sets absolute value)
+PUT http://localhost:3000/api/inventory/product/d884f1aa-097a-4163-b0dc-167dbbd15daf
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzg0OTAxMTc1LCJleHAiOjE3ODU1MDU5NzV9.pg5Fp8-LH52iOJSPGMJScjSYGcplNgG9zOiVnGDNOp4
+
+{
+  "quantity": 50
+}
+
+### Add stock (ADMIN only - increments existing)
+POST http://localhost:3000/api/inventory/product/d884f1aa-097a-4163-b0dc-167dbbd15daf/add
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzg0OTAxMTc1LCJleHAiOjE3ODU1MDU5NzV9.pg5Fp8-LH52iOJSPGMJScjSYGcplNgG9zOiVnGDNOp4
+
+{
+  "amount": 20
+}
+
+### Get low stock products (ADMIN only)
+GET http://localhost:3000/api/inventory/low-stock?threshold=60
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzg0OTAxMTc1LCJleHAiOjE3ODU1MDU5NzV9.pg5Fp8-LH52iOJSPGMJScjSYGcplNgG9zOiVnGDNOp4

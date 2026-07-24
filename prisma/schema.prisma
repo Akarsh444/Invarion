@@ -1,0 +1,83 @@
+// This tells Prisma we're using PostgreSQL as our database
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Users who can place orders or manage inventory
+model User {
+  id        String   @id @default(uuid()) // UUID instead of 1,2,3 — harder to guess
+  email     String   @unique
+  password  String   // Will be hashed with bcrypt, never stored plain
+  role      Role     @default(CUSTOMER) // ADMIN can manage inventory, CUSTOMER can order
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]  // One user can have many orders
+}
+
+// Two roles in the system
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+// A product in the catalog
+model Product {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal     // Decimal not Float — money should never use Float
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  inventory   Inventory?  // Each product has one inventory record
+  orderItems  OrderItem[] // A product can appear in many orders
+}
+
+// Inventory is separate from Product — this is intentional
+// It lets us track stock independently from product details
+model Inventory {
+  id        String   @id @default(uuid())
+  productId String   @unique
+  quantity  Int      @default(0)
+  reserved  Int      @default(0)  // Stock locked for pending orders, not yet confirmed
+  version   Int      @default(0)  // Used for optimistic concurrency control — key feature
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+// An order placed by a user
+model Order {
+  id        String      @id @default(uuid())
+  userId    String
+  status    OrderStatus @default(PENDING)
+  // Idempotency key — if same request comes twice, we don't create duplicate orders
+  idempotencyKey String @unique
+  total     Decimal
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  user      User        @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+}
+
+// Order state machine — orders move through these states only in one direction
+enum OrderStatus {
+  PENDING    // Order created, stock reserved
+  CONFIRMED  // Payment confirmed, stock deducted
+  SHIPPED    // Order handed to delivery
+  DELIVERED  // Order received by customer
+  CANCELLED  // Order cancelled, stock released back
+}
+
+// Each line item in an order (one order can have multiple products)
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal // Price at time of order — product price can change later
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
