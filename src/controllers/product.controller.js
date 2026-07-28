@@ -1,4 +1,6 @@
 const prisma = require('../config/db');
+const { invalidateCache } = require('../middlewares/cache.middleware'); // Add this line
+
 
 // Create a new product (ADMIN only)
 async function createProduct(req, res) {
@@ -32,7 +34,7 @@ async function createProduct(req, res) {
 
       return newProduct;
     });
-
+    await invalidateCache('/api/products*');
     res.status(201).json(product);
   } catch (error) {
     console.error('Create product error:', error);
@@ -106,7 +108,7 @@ async function updateProduct(req, res) {
         inventory: true,
       },
     });
-
+    await invalidateCache('/api/products*');
     res.json(product);
   } catch (error) {
     if (error.code === 'P2025') {
@@ -135,7 +137,7 @@ async function deleteProduct(req, res) {
         where: { id },
       });
     });
-
+    await invalidateCache('/api/products*');
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     if (error.code === 'P2025') {
