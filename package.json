@@ -6,6 +6,9 @@
   "directories": {
     "test": "tests"
   },
+  "jest": {
+  "setupFiles": ["<rootDir>/jest.setup.js"]
+  },
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
