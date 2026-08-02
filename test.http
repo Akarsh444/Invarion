@@ -1,5 +1,5 @@
 ### Register a new user
-POST http://localhost:3000/api/auth/register
+POST http://localhost:3000/api/v1/auth/register
 Content-Type: application/json
 
 {
@@ -9,7 +9,7 @@ Content-Type: application/json
 }
 
 ### Login
-POST http://localhost:3000/api/auth/login
+POST http://localhost:3000/api/v1/auth/login
 Content-Type: application/json
 
 {
@@ -18,7 +18,7 @@ Content-Type: application/json
 }
 
 ### Register an ADMIN user (for testing)
-POST http://localhost:3000/api/auth/register
+POST http://localhost:3000/api/v1/auth/register
 Content-Type: application/json
 
 {
@@ -28,7 +28,7 @@ Content-Type: application/json
 }
 
 ### Login as ADMIN
-POST http://localhost:3000/api/auth/login
+POST http://localhost:3000/api/v1/auth/login
 Content-Type: application/json
 
 {
@@ -37,7 +37,7 @@ Content-Type: application/json
 }
 
 ### Create a product (ADMIN only - copy token from login response)
-POST http://localhost:3000/api/products
+POST http://localhost:3000/api/v1/products
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzg0OTAxMTc1LCJleHAiOjE3ODU1MDU5NzV9.pg5Fp8-LH52iOJSPGMJScjSYGcplNgG9zOiVnGDNOp4
 
@@ -49,13 +49,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2N
 }
 
 ### Get all products (no auth needed)
-GET http://localhost:3000/api/products
+GET http://localhost:3000/api/v1/products
 
 ### Get single product (replace ID)
-GET http://localhost:3000/api/products/f4ac8554-b17f-49ad-8b73-30685c7746aa
+GET http://localhost:3000/api/v1/products/f4ac8554-b17f-49ad-8b73-30685c7746aa
 
 ### Update product (ADMIN only)
-PUT http://localhost:3000/api/products/f4ac8554-b17f-49ad-8b73-30685c7746aa
+PUT http://localhost:3000/api/v1/products/f4ac8554-b17f-49ad-8b73-30685c7746aa
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzc4OTY0Nzc0LCJleHAiOjE3Nzk1Njk1NzR9.bd3yM749fxjkcbOUSOhpkn0_ZOoKJUo88x11buPDpFQ
 
@@ -64,14 +64,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2N
 }
 
 ### Delete product (ADMIN only)
-DELETE http://localhost:3000/api/products/f4ac8554-b17f-49ad-8b73-30685c7746aa
+DELETE http://localhost:3000/api/v1/products/f4ac8554-b17f-49ad-8b73-30685c7746aa
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzc4OTY0Nzc0LCJleHAiOjE3Nzk1Njk1NzR9.bd3yM749fxjkcbOUSOhpkn0_ZOoKJUo88x11buPDpFQ
 
 ### Get inventory for a product
-GET http://localhost:3000/api/inventory/product/d884f1aa-097a-4163-b0dc-167dbbd15daf
+GET http://localhost:3000/api/v1/inventory/product/d884f1aa-097a-4163-b0dc-167dbbd15daf
 
 ### Update stock quantity (ADMIN only - sets absolute value)
-PUT http://localhost:3000/api/inventory/product/d884f1aa-097a-4163-b0dc-167dbbd15daf
+PUT http://localhost:3000/api/v1/inventory/product/d884f1aa-097a-4163-b0dc-167dbbd15daf
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzg0OTAxMTc1LCJleHAiOjE3ODU1MDU5NzV9.pg5Fp8-LH52iOJSPGMJScjSYGcplNgG9zOiVnGDNOp4
 
@@ -80,7 +80,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2N
 }
 
 ### Add stock (ADMIN only - increments existing)
-POST http://localhost:3000/api/inventory/product/d884f1aa-097a-4163-b0dc-167dbbd15daf/add
+POST http://localhost:3000/api/v1/inventory/product/d884f1aa-097a-4163-b0dc-167dbbd15daf/add
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzg0OTAxMTc1LCJleHAiOjE3ODU1MDU5NzV9.pg5Fp8-LH52iOJSPGMJScjSYGcplNgG9zOiVnGDNOp4
 
@@ -89,5 +89,5 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2N
 }
 
 ### Get low stock products (ADMIN only)
-GET http://localhost:3000/api/inventory/low-stock?threshold=60
+GET http://localhost:3000/api/v1/inventory/low-stock?threshold=60
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYTI2NmMwZC0yYzM3LTRhODEtOWJmZi0wNjAxMDg4OTlkODMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzg0OTAxMTc1LCJleHAiOjE3ODU1MDU5NzV9.pg5Fp8-LH52iOJSPGMJScjSYGcplNgG9zOiVnGDNOp4

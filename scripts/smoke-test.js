@@ -57,14 +57,14 @@ async function main() {
 
   // 2. DB connection check
   await test('Database connection works', async () => {
-    const { status, data } = await request('GET', '/api/db-test');
+    const { status, data } = await request('GET', '/api/v1/db-test');
     assert(status === 200, `Expected 200, got ${status}`);
     assert(typeof data.userCount === 'number', 'userCount missing');
   });
 
   // 3. Register or login admin (handles both fresh and repeat runs)
   await test('Admin auth works (register or login)', async () => {
-    let res = await request('POST', '/api/auth/register', {
+    let res = await request('POST', '/api/v1/auth/register', {
       email: 'smoketest_admin@example.com',
       password: 'Admin1234',
       role: 'ADMIN',
@@ -72,7 +72,7 @@ async function main() {
 
     if (res.status === 400) {
       // Already exists, login instead
-      res = await request('POST', '/api/auth/login', {
+      res = await request('POST', '/api/v1/auth/login', {
         email: 'smoketest_admin@example.com',
         password: 'Admin1234',
       });
@@ -85,7 +85,7 @@ async function main() {
 
   // 4. Validation rejects weak password
   await test('Weak password is rejected', async () => {
-    const { status, data } = await request('POST', '/api/auth/register', {
+    const { status, data } = await request('POST', '/api/v1/auth/register', {
       email: `weak_${Date.now()}@example.com`,
       password: 'weak',
       role: 'CUSTOMER',
@@ -96,7 +96,7 @@ async function main() {
 
   // 5. Create product
   await test('Create product (ADMIN)', async () => {
-    const { status, data } = await request('POST', '/api/products', {
+    const { status, data } = await request('POST', '/api/v1/products', {
       name: `Test Laptop ${Date.now()}`,
       description: 'Smoke test product',
       price: 50000,
@@ -109,7 +109,7 @@ async function main() {
 
   // 6. Create product fails without token
   await test('Create product fails without auth', async () => {
-    const { status } = await request('POST', '/api/products', {
+    const { status } = await request('POST', '/api/v1/products', {
       name: 'Should Fail',
       price: 100,
     });
@@ -118,21 +118,21 @@ async function main() {
 
   // 7. Get all products (cache miss first time)
   await test('Get all products returns array', async () => {
-    const { status, data } = await request('GET', '/api/products');
+    const { status, data } = await request('GET', '/api/v1/products');
     assert(status === 200, `Expected 200, got ${status}`);
     assert(Array.isArray(data), 'Response is not an array');
   });
 
   // 8. Get single product
   await test('Get single product by id', async () => {
-    const { status, data } = await request('GET', `/api/products/${productId}`);
+    const { status, data } = await request('GET', `/api/v1/products/${productId}`);
     assert(status === 200, `Expected 200, got ${status}`);
     assert(data.id === productId, 'Product id mismatch');
   });
 
   // 9. Get inventory for product
   await test('Get inventory shows correct initial stock', async () => {
-    const { status, data } = await request('GET', `/api/inventory/product/${productId}`);
+    const { status, data } = await request('GET', `/api/v1/inventory/product/${productId}`);
     assert(status === 200, `Expected 200, got ${status}`);
     assert(data.quantity === 10, `Expected quantity 10, got ${data.quantity}`);
     assert(data.available === 10, `Expected available 10, got ${data.available}`);
@@ -140,7 +140,7 @@ async function main() {
 
   // 10. Add stock
   await test('Add stock increments quantity', async () => {
-    const { status, data } = await request('POST', `/api/inventory/product/${productId}/add`, {
+    const { status, data } = await request('POST', `/api/v1/inventory/product/${productId}/add`, {
       amount: 20,
     }, adminToken);
     assert(status === 200, `Expected 200, got ${status}`);
@@ -149,7 +149,7 @@ async function main() {
 
   // 11. Update stock (absolute set)
   await test('Update stock sets absolute value', async () => {
-    const { status, data } = await request('PUT', `/api/inventory/product/${productId}`, {
+    const { status, data } = await request('PUT', `/api/v1/inventory/product/${productId}`, {
       quantity: 50,
     }, adminToken);
     assert(status === 200, `Expected 200, got ${status}`);
@@ -158,7 +158,7 @@ async function main() {
 
   // 12. Low stock check
   await test('Low stock endpoint includes product below threshold', async () => {
-    const { status, data } = await request('GET', '/api/inventory/low-stock?threshold=60', null, adminToken);
+    const { status, data } = await request('GET', '/api/v1/inventory/low-stock?threshold=60', null, adminToken);
     assert(status === 200, `Expected 200, got ${status}`);
     const found = data.find((inv) => inv.productId === productId);
     assert(found, 'Product not found in low stock list');
@@ -166,7 +166,7 @@ async function main() {
 
   // 13. Update product
   await test('Update product changes price', async () => {
-    const { status, data } = await request('PUT', `/api/products/${productId}`, {
+    const { status, data } = await request('PUT', `/api/v1/products/${productId}`, {
       price: 48000,
     }, adminToken);
     assert(status === 200, `Expected 200, got ${status}`);
@@ -175,19 +175,19 @@ async function main() {
 
   // 14. Cache invalidation check - fetch right after update should reflect new price
   await test('Cache invalidates after update (fresh price served)', async () => {
-    const { data } = await request('GET', `/api/products/${productId}`);
+    const { data } = await request('GET', `/api/v1/products/${productId}`);
     assert(Number(data.price) === 48000, `Stale cache: expected 48000, got ${data.price}`);
   });
 
   // 15. Delete product
   await test('Delete product succeeds', async () => {
-    const { status } = await request('DELETE', `/api/products/${productId}`, null, adminToken);
+    const { status } = await request('DELETE', `/api/v1/products/${productId}`, null, adminToken);
     assert(status === 200, `Expected 200, got ${status}`);
   });
 
   // 16. Deleted product returns 404
   await test('Deleted product returns 404', async () => {
-    const { status } = await request('GET', `/api/products/${productId}`);
+    const { status } = await request('GET', `/api/v1/products/${productId}`);
     assert(status === 404, `Expected 404, got ${status}`);
   });
 

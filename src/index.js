@@ -4,12 +4,15 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
 
+const { generalLimiter } = require('./middlewares/rateLimit.middleware');
+
 const app = express();
 
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(generalLimiter); 
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'StockSync API running' });
@@ -20,10 +23,12 @@ const authRoutes = require('./routes/auth.routes'); // Add this line
 const productRoutes = require('./routes/product.routes'); // Add this
 const inventoryRoutes = require('./routes/inventory.routes'); // Add this
 
-app.use('/api', testRoutes);
-app.use('/api/auth', authRoutes); // Add this line
-app.use('/api/products', productRoutes); // Add this
-app.use('/api/inventory', inventoryRoutes); // Add this
+const API_VERSION = '/api/v1';
+
+app.use(API_VERSION, testRoutes);
+app.use(`${API_VERSION}/auth`, authRoutes);
+app.use(`${API_VERSION}/products`, productRoutes);
+app.use(`${API_VERSION}/inventory`, inventoryRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

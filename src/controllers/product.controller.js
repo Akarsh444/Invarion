@@ -34,7 +34,7 @@ async function createProduct(req, res) {
 
       return newProduct;
     });
-    await invalidateCache('/api/products*');
+    await invalidateCache('/api/v1/products*');
     res.status(201).json(product);
   } catch (error) {
     console.error('Create product error:', error);
@@ -108,7 +108,7 @@ async function updateProduct(req, res) {
         inventory: true,
       },
     });
-    await invalidateCache('/api/products*');
+    await invalidateCache('/api/v1/products*');
     res.json(product);
   } catch (error) {
     if (error.code === 'P2025') {
@@ -137,7 +137,7 @@ async function deleteProduct(req, res) {
         where: { id },
       });
     });
-    await invalidateCache('/api/products*');
+    await invalidateCache('/api/v1/products*');
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     if (error.code === 'P2025') {
