@@ -22,9 +22,11 @@ const testRoutes = require('./routes/test.routes');
 const authRoutes = require('./routes/auth.routes'); // Add this line
 const productRoutes = require('./routes/product.routes'); // Add this
 const inventoryRoutes = require('./routes/inventory.routes'); // Add this
+const orderRoutes = require('./routes/order.routes');
 
 const API_VERSION = '/api/v1';
 
+app.use(`${API_VERSION}/orders`, orderRoutes);
 app.use(API_VERSION, testRoutes);
 app.use(`${API_VERSION}/auth`, authRoutes);
 app.use(`${API_VERSION}/products`, productRoutes);

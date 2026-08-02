@@ -191,6 +191,112 @@ async function main() {
     assert(status === 404, `Expected 404, got ${status}`);
   });
 
+  // --- ORDER TESTS ---
+  let orderProductId, firstIdempotencyKey;
+
+  // 17. Create a fresh product with stock=1 for order testing
+  await test('Create product with stock=1 for order tests', async () => {
+    const { status, data } = await request('POST', '/api/v1/products', {
+      name: `Order Test Product ${Date.now()}`,
+      price: 1000,
+      initialStock: 1,
+    }, adminToken);
+    assert(status === 201, `Expected 201, got ${status}`);
+    orderProductId = data.id;
+  });
+
+  // 18. Successful order creation reserves stock
+  await test('Create order reserves stock', async () => {
+    firstIdempotencyKey = `smoke-order-${Date.now()}-a`;
+    const { status, data } = await request('POST', '/api/v1/orders', {
+      idempotencyKey: firstIdempotencyKey,
+      items: [{ productId: orderProductId, quantity: 1 }],
+    }, adminToken);
+    assert(status === 201, `Expected 201, got ${status}: ${JSON.stringify(data)}`);
+    assert(data.status === 'PENDING', `Expected PENDING, got ${data.status}`);
+  });
+
+  // 19. Idempotency - same key returns the same order, doesn't double-reserve
+  await test('Duplicate idempotency key returns same order (200, not 201)', async () => {
+    const { status, data } = await request('POST', '/api/v1/orders', {
+      idempotencyKey: firstIdempotencyKey,
+      items: [{ productId: orderProductId, quantity: 1 }],
+    }, adminToken);
+    assert(status === 200, `Expected 200 (replay), got ${status}`);
+  });
+
+  // 20. Insufficient stock is rejected (product now has 0 available after reservation)
+  await test('Order fails with insufficient stock', async () => {
+    const { status } = await request('POST', '/api/v1/orders', {
+      idempotencyKey: `smoke-order-${Date.now()}-b`,
+      items: [{ productId: orderProductId, quantity: 5 }],
+    }, adminToken);
+    assert(status === 409, `Expected 409, got ${status}`);
+  });
+
+  // 21. THE MONEY TEST - concurrent orders for the last unit, only one should win
+  await test('Concurrent orders on last unit - no overselling', async () => {
+    // Fresh product with exactly 1 unit in stock
+    const { data: product } = await request('POST', '/api/v1/products', {
+      name: `Concurrency Test ${Date.now()}`,
+      price: 500,
+      initialStock: 1,
+    }, adminToken);
+
+    // Fire TWO order requests at the exact same time for the same product, quantity 1 each
+    const [resA, resB] = await Promise.all([
+      request('POST', '/api/v1/orders', {
+        idempotencyKey: `concurrency-a-${Date.now()}`,
+        items: [{ productId: product.id, quantity: 1 }],
+      }, adminToken),
+      request('POST', '/api/v1/orders', {
+        idempotencyKey: `concurrency-b-${Date.now()}`,
+        items: [{ productId: product.id, quantity: 1 }],
+      }, adminToken),
+    ]);
+
+    const statuses = [resA.status, resB.status].sort();
+    assert(
+      JSON.stringify(statuses) === JSON.stringify([201, 409]),
+      `Expected one 201 and one 409, got ${resA.status} and ${resB.status}`
+    );
+
+    // Verify final inventory is consistent - not oversold
+    const { data: inv } = await request('GET', `/api/v1/inventory/product/${product.id}`);
+    assert(inv.available === 0, `Expected available 0, got ${inv.available}`);
+    assert(inv.reserved === 1, `Expected reserved 1, got ${inv.reserved}`);
+  });
+
+  // 22. Invalid state transition is rejected
+  await test('Invalid order status transition is rejected', async () => {
+    // Get the order we created in test 18
+    const orders = await request('GET', '/api/v1/orders/my', null, adminToken);
+    const pendingOrder = orders.data.find((o) => o.status === 'PENDING');
+    assert(pendingOrder, 'No pending order found to test transition');
+
+    // PENDING -> DELIVERED is not allowed (must go through CONFIRMED, SHIPPED first)
+    const { status } = await request('PATCH', `/api/v1/orders/${pendingOrder.id}/status`, {
+      status: 'DELIVERED',
+    }, adminToken);
+    assert(status === 400, `Expected 400, got ${status}`);
+  });
+
+  // 23. Valid transition PENDING -> CONFIRMED deducts stock correctly
+  await test('Confirming order deducts stock from quantity', async () => {
+    const orders = await request('GET', '/api/v1/orders/my', null, adminToken);
+    const pendingOrder = orders.data.find((o) => o.status === 'PENDING' && o.items.some(i => i.productId === orderProductId));
+    assert(pendingOrder, 'No pending order found for confirm test');
+
+    const { status } = await request('PATCH', `/api/v1/orders/${pendingOrder.id}/status`, {
+      status: 'CONFIRMED',
+    }, adminToken);
+    assert(status === 200, `Expected 200, got ${status}`);
+
+    const { data: inv } = await request('GET', `/api/v1/inventory/product/${orderProductId}`);
+    assert(inv.quantity === 0, `Expected quantity 0 after confirm, got ${inv.quantity}`);
+    assert(inv.reserved === 0, `Expected reserved 0 after confirm, got ${inv.reserved}`);
+  });
+
   console.log(yellow('\n--- Results ---'));
   console.log(green(`Passed: ${passed}`));
   console.log(failed > 0 ? red(`Failed: ${failed}`) : `Failed: ${failed}`);

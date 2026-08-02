@@ -60,6 +60,24 @@ const addStockValidation = [
     .isInt({ min: 1 }).withMessage('Amount must be a positive integer'),
 ];
 
+const createOrderValidation = [
+  body('idempotencyKey')
+    .isString().withMessage('idempotencyKey is required')
+    .isLength({ min: 10 }).withMessage('idempotencyKey must be a reasonably unique string'),
+  body('items')
+    .isArray({ min: 1 }).withMessage('items must be a non-empty array'),
+  body('items.*.productId')
+    .isString().withMessage('Each item needs a productId'),
+  body('items.*.quantity')
+    .isInt({ min: 1 }).withMessage('Each item quantity must be a positive integer'),
+];
+
+const updateOrderStatusValidation = [
+  body('status')
+    .isIn(['CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED'])
+    .withMessage('Invalid status value'),
+];
+
 module.exports = {
   registerValidation,
   loginValidation,
@@ -67,4 +85,6 @@ module.exports = {
   updateProductValidation,
   updateStockValidation,
   addStockValidation,
+  createOrderValidation,
+  updateOrderStatusValidation,
 };
