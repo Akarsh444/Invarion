@@ -12,10 +12,11 @@
     ]
   },
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "jest",
-    "smoke": "node scripts/smoke-test.js"
+  "start": "node src/index.js",
+  "dev": "nodemon src/index.js",
+  "test": "jest",
+  "smoke": "node scripts/smoke-test.js",
+  "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
