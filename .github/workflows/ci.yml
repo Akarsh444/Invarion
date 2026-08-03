@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: akarsh
+          POSTGRES_PASSWORD: akarsh444
+          POSTGRES_DB: stocksync
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U akarsh -d stocksync"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://akarsh:akarsh444@localhost:5432/stocksync
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci_test_secret_key
+      NODE_ENV: test
+      PORT: 3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Start server in background
+        run: npm start &
+
+      - name: Wait for server to be ready
+        run: npx wait-on http://localhost:3000/health -t 30000
+
+      - name: Run smoke tests
+        run: npm run smoke
