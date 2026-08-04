@@ -12,11 +12,15 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(generalLimiter); 
 
+// Health check must come BEFORE the rate limiter so Render's frequent
+// health polling is never rate-limited (which would cause false restarts)
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'StockSync API running' });
+  res.json({ status: 'ok', message: 'Invarion API running' });
 });
+
+// Rate limiter applies only to API routes, not health checks
+app.use('/api', generalLimiter);
 
 const testRoutes = require('./routes/test.routes');
 const authRoutes = require('./routes/auth.routes'); // Add this line
