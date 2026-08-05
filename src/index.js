@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 require('dotenv').config();
 
 const { generalLimiter } = require('./middlewares/rateLimit.middleware');
@@ -12,6 +14,11 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
+
+// Interactive API documentation — visit /api-docs in a browser
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Root redirects to API docs so the base URL isn't a dead 404
+app.get('/', (req, res) => res.redirect('/api-docs'));
 
 // Health check must come BEFORE the rate limiter so Render's frequent
 // health polling is never rate-limited (which would cause false restarts)
