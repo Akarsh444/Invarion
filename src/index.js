@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -15,10 +16,17 @@ app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
 
+// Serve the built React frontend from /public (created by the Docker build)
+app.use(express.static(path.join(__dirname, '../public')));
+
+// SPA fallback — any non-API route returns index.html so client-side
+// routing works and refreshing a page doesn't 404
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
 // Interactive API documentation — visit /api-docs in a browser
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-// Root redirects to API docs so the base URL isn't a dead 404
-app.get('/', (req, res) => res.redirect('/api-docs'));
 
 // Health check must come BEFORE the rate limiter so Render's frequent
 // health polling is never rate-limited (which would cause false restarts)
