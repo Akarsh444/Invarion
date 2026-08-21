@@ -68,6 +68,7 @@ async function main() {
       email: 'smoketest_admin@example.com',
       password: 'Admin1234',
       role: 'ADMIN',
+      adminSecret: process.env.ADMIN_SIGNUP_SECRET,
     });
 
     if (res.status === 400) {

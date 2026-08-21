@@ -12,6 +12,7 @@ const registerValidation = [
   body('role')
     .optional()
     .isIn(['ADMIN', 'CUSTOMER']).withMessage('Role must be ADMIN or CUSTOMER'),
+  body('adminSecret').optional().isString(),
 ];
 
 // Rules for login

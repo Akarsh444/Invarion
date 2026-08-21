@@ -30,6 +30,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      ADMIN_SIGNUP_SECRET: local_dev_admin_secret_change_me
       PORT: 3000
       DATABASE_URL: postgresql://akarsh:akarsh444@postgres:5432/stocksync
       REDIS_URL: redis://redis:6379

@@ -41,6 +41,7 @@ jobs:
       JWT_SECRET: ci_test_secret_key
       NODE_ENV: test
       PORT: 3000
+      ADMIN_SIGNUP_SECRET: ci_admin_secret
 
     steps:
       - uses: actions/checkout@v4

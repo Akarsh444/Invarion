@@ -15,6 +15,7 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "test": "jest",
+    "seed": "node scripts/seed.js",
     "smoke": "node scripts/smoke-test.js",
     "postinstall": "prisma generate"
   },

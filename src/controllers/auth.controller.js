@@ -5,7 +5,7 @@ const { generateToken } = require('../utils/jwt');
 // Register a new user
 async function register(req, res) {
   try {
-    const { email, password, role } = req.body;
+    const { email, password, role, adminSecret } = req.body;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -24,7 +24,13 @@ async function register(req, res) {
       data: {
         email,
         password: hashedPassword,
-        role: role || 'CUSTOMER', // Default to CUSTOMER if not specified
+                // Public registration ALWAYS creates a CUSTOMER.
+        // ADMIN can only be created by supplying the server-side secret,
+        // which prevents anyone from self-promoting to admin via the API.
+        role:
+          role === 'ADMIN' && adminSecret === process.env.ADMIN_SIGNUP_SECRET
+            ? 'ADMIN'
+            : 'CUSTOMER',
       },
     });
 
