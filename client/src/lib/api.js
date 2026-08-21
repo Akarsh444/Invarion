@@ -1,7 +1,10 @@
 // Central API client — all backend calls go through here.
 // Automatically attaches the JWT token to requests when present.
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+// Frontend and backend are same-origin (Express serves the built React app),
+// so the API path is always relative. Falls back to the env var if one is set,
+// which allows pointing at a different backend during development if needed.
+const BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 // Reads the token from localStorage (set on login)
 function getToken() {
