@@ -62,10 +62,14 @@ jobs:
         run: npm test
 
       - name: Start server in background
-        run: npm start &
+        run: nohup npm start > server.log 2>&1 &
 
       - name: Wait for server to be ready
         run: npx wait-on http://localhost:3000/health -t 60000
+
+      - name: Show server logs
+        if: always()
+        run: cat server.log || echo "No server log found"
 
       - name: Run smoke tests
         run: npm run smoke
