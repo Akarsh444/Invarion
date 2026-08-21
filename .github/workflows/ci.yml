@@ -65,7 +65,7 @@ jobs:
         run: nohup npm start > server.log 2>&1 &
 
       - name: Wait for server to be ready
-        run: npx wait-on http://localhost:3000/health -t 60000
+        run: npx wait-on http-get://localhost:3000/health -t 60000
 
       - name: Show server logs
         if: always()
