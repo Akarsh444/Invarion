@@ -27,4 +27,4 @@ COPY --from=builder --chown=appuser:appuser /app ./
 COPY --from=frontend --chown=appuser:appuser /client/dist ./public
 USER appuser
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma migrate deploy && node src/index.js"]
+CMD ["sh", "-c", "DATABASE_URL=\"${DIRECT_DATABASE_URL:-$DATABASE_URL}\" npx prisma migrate deploy && node src/index.js"]
