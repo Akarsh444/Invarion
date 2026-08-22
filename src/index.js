@@ -34,6 +34,7 @@ const authRoutes = require('./routes/auth.routes');
 const productRoutes = require('./routes/product.routes');
 const inventoryRoutes = require('./routes/inventory.routes');
 const orderRoutes = require('./routes/order.routes');
+const { startReservationSweeper } = require('./services/reservation.sweeper');
 
 const API_VERSION = '/api/v1';
 
@@ -60,6 +61,7 @@ if (fs.existsSync(path.join(publicDir, 'index.html'))) {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  startReservationSweeper();
 });
 
 module.exports = app;

@@ -9,7 +9,7 @@ const {
 const { authenticate, requireAdmin } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validation.middleware');
 const { createProductValidation, updateProductValidation } = require('../middlewares/validators');
-const { cacheMiddleware } = require('../middlewares/cache.middleware');
+
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ const router = express.Router();
  *     responses:
  *       200: { description: Array of products with inventory }
  */
-router.get('/', cacheMiddleware(300), getAllProducts);
+router.get('/', getAllProducts);
 
 /**
  * @openapi
@@ -39,7 +39,7 @@ router.get('/', cacheMiddleware(300), getAllProducts);
  *       200: { description: Product with inventory }
  *       404: { description: Product not found }
  */
-router.get('/:id', cacheMiddleware(300), getProductById);
+router.get('/:id', getProductById);
 
 /**
  * @openapi

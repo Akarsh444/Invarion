@@ -1,5 +1,5 @@
 const prisma = require('../config/db');
-const { invalidateCache } = require('../middlewares/cache.middleware'); // Add this line
+const { invalidateCache, getCached, setCached } = require('../middlewares/cache.middleware');
 
 
 // Create a new product (ADMIN only)
@@ -34,7 +34,7 @@ async function createProduct(req, res) {
 
       return newProduct;
     });
-    await invalidateCache('/api/v1/products*');
+    await invalidateCache('catalog:*');
     res.status(201).json(product);
   } catch (error) {
     console.error('Create product error:', error);
@@ -43,46 +43,79 @@ async function createProduct(req, res) {
 }
 
 // Get all products with their inventory
+// Catalog data (name, description, price) changes rarely — safe to cache for a while.
+// Stock changes constantly — never cached, always read fresh from the database.
+// This split is deliberate: caching stock would serve stale availability, which is
+// unacceptable for an inventory system. Real systems cache the catalog, not the count.
+const CATALOG_TTL_SECONDS = 300;
+
 async function getAllProducts(req, res) {
   try {
-    const products = await prisma.product.findMany({
-      include: {
-        inventory: true, // Include related inventory data
-      },
-      orderBy: {
-        createdAt: 'desc', // Newest first
-      },
+    // 1. Catalog from cache if available
+    let catalog = await getCached('catalog:products');
+
+    if (!catalog) {
+      catalog = await prisma.product.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+      await setCached('catalog:products', catalog, CATALOG_TTL_SECONDS);
+      console.log('Catalog cache MISS');
+    } else {
+      console.log('Catalog cache HIT');
+    }
+
+    // 2. Stock ALWAYS fresh — never cached
+    const inventories = await prisma.inventory.findMany({
+      where: { productId: { in: catalog.map((p) => p.id) } },
+    });
+    const invMap = new Map(inventories.map((i) => [i.productId, i]));
+
+    // 3. Merge cached catalog with live stock
+    const result = catalog.map((p) => {
+      const inv = invMap.get(p.id) || null;
+      return {
+        ...p,
+        inventory: inv,
+        available: inv ? inv.quantity - inv.reserved : 0,
+      };
     });
 
-    res.json(products);
+    res.json(result);
   } catch (error) {
     console.error('Get products error:', error);
     res.status(500).json({ error: 'Failed to fetch products' });
   }
 }
 
-// Get single product by ID
 async function getProductById(req, res) {
   try {
     const { id } = req.params;
 
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        inventory: true,
-      },
-    });
+    let product = await getCached(`catalog:product:${id}`);
 
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      product = await prisma.product.findUnique({ where: { id } });
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      await setCached(`catalog:product:${id}`, product, CATALOG_TTL_SECONDS);
     }
 
-    res.json(product);
+    // Stock always fresh
+    const inv = await prisma.inventory.findUnique({ where: { productId: id } });
+
+    res.json({
+      ...product,
+      inventory: inv,
+      available: inv ? inv.quantity - inv.reserved : 0,
+    });
   } catch (error) {
     console.error('Get product error:', error);
     res.status(500).json({ error: 'Failed to fetch product' });
   }
 }
+
+
 
 // Update product (ADMIN only)
 async function updateProduct(req, res) {
@@ -108,7 +141,7 @@ async function updateProduct(req, res) {
         inventory: true,
       },
     });
-    await invalidateCache('/api/v1/products*');
+    await invalidateCache('catalog:*');
     res.json(product);
   } catch (error) {
     if (error.code === 'P2025') {
@@ -137,7 +170,7 @@ async function deleteProduct(req, res) {
         where: { id },
       });
     });
-    await invalidateCache('/api/v1/products*');
+    await invalidateCache('catalog:*');
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     if (error.code === 'P2025') {

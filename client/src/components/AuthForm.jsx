@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function AuthForm() {
+export default function AuthForm({ onBack }) {
   const { authenticate } = useAuth();
   const [mode, setMode] = useState('login'); // 'login' or 'register'
   const [email, setEmail] = useState('');
@@ -89,6 +89,28 @@ export default function AuthForm() {
       >
         {mode === 'login' ? "Don't have an account? Register" : 'Already have an account? Sign in'}
       </button>
+            <div className="mt-6 pt-6 border-t border-gray-200">
+        <p className="text-xs font-medium text-gray-500 mb-2">Quick fill demo account</p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => { setEmail('admin@invarion.demo'); setPassword('DemoAdmin123'); setMode('login'); }}
+            className="flex-1 text-xs py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Admin
+          </button>
+          <button
+            onClick={() => { setEmail('customer@invarion.demo'); setPassword('DemoUser123'); setMode('login'); }}
+            className="flex-1 text-xs py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Customer
+          </button>
+        </div>
+        {onBack && (
+          <button onClick={onBack} className="w-full mt-3 text-xs text-gray-500 hover:text-gray-900">
+            ← Back to overview
+          </button>
+        )}
+      </div>
     </div>
   );
 }

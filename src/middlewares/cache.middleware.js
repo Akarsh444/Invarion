@@ -36,9 +36,11 @@ function cacheMiddleware(ttlSeconds = 300) {
 }
 
 // Invalidate cache for a specific pattern (used after create/update/delete)
+// Takes a full key pattern (e.g. 'catalog:*') and deletes every match.
+// No prefix is added — callers pass the exact pattern they use for keys.
 async function invalidateCache(pattern) {
   try {
-    const keys = await redisClient.keys(`cache:${pattern}`);
+    const keys = await redisClient.keys(pattern);
     if (keys.length > 0) {
       await redisClient.del(keys);
       console.log(`Invalidated ${keys.length} cache keys matching: ${pattern}`);
@@ -48,4 +50,25 @@ async function invalidateCache(pattern) {
   }
 }
 
-module.exports = { cacheMiddleware, invalidateCache };
+// Direct cache read — returns parsed value or null on miss/error
+async function getCached(key) {
+  try {
+    const raw = await redisClient.get(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    console.error('Cache read error:', error);
+    return null; // treat cache failure as a miss, never break the request
+  }
+}
+
+// Direct cache write with TTL
+async function setCached(key, value, ttlSeconds) {
+  try {
+    await redisClient.setEx(key, ttlSeconds, JSON.stringify(value));
+  } catch (error) {
+    console.error('Cache write error:', error);
+  }
+}
+
+
+module.exports = { cacheMiddleware, invalidateCache, getCached, setCached };

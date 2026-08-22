@@ -1,3 +1,4 @@
+import Landing from './components/Landing';
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthForm from './components/AuthForm';
@@ -7,11 +8,12 @@ import OrdersList from './components/OrdersList';
 
 function AppContent() {
   const { user, logout } = useAuth();
-  // A counter we bump to trigger refreshes across components
   const [refresh, setRefresh] = useState(0);
+  const [showAuth, setShowAuth] = useState(false);
   const bump = () => setRefresh((n) => n + 1);
 
-  if (!user) return <AuthForm />;
+  if (!user && !showAuth) return <Landing onEnter={() => setShowAuth(true)} />;
+  if (!user) return <AuthForm onBack={() => setShowAuth(false)} />;
 
   return (
     <div className="min-h-screen bg-gray-50">
